@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض الحضور</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f9f9f9;
+            direction: rtl;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        label {
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #878a88;
+            color: black;
+        }
+        button {
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: 0.3s;
+            background-color: #28a745;
+            color: white;
+            margin: 10px;
+        }
+        button:hover {
+            transform: scale(1.1);
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0.9;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>سجل الحضور والانصراف</h2>
+    
+    <div class="container">
+        <label for="name-filter">اختر الاسم:</label>
+        <select id="name-filter">
+            <option value="all">عرض الكل</option>
+        </select>
+
+        <table id="attendance-table">
+            <thead>
+                <tr>
+                    <th>الأسم</th>
+                    <th>اليوم</th>
+                    <th>التاريخ</th>
+                    <th>وقت الحضور</th>
+                    <th>وقت الانصراف</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <button id="download-excel">📥 تحميل كـ Excel</button>
+        <button id="logout" class="logout-btn">تسجيل الخروج</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycby924b7H5fEnF-tSC-dIeliMchPG0SPgCsGLvZVhdwL2CXxFh2Mh5WtSF6y7x5WMXJZCQ/exec";
+            let tableBody = document.querySelector("#attendance-table tbody");
+            const nameFilter = document.getElementById("name-filter");
+
+            function formatDate(dateString) {
+                if (!dateString) return "-";
+                let date = new Date(dateString);
+                return isNaN(date) ? dateString : date.toLocaleDateString("en-US"); 
+            }
+
+            function formatTime(timeString) {
+                if (!timeString) return "-";
+                let time = new Date(timeString);
+                return isNaN(time) ? timeString : time.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' });
+            }
+
+            function fetchAttendanceData() {
+                fetch(GOOGLE_SHEET_URL)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("📌 البيانات المستلمة:", data);
+
+                    if (!Array.isArray(data)) {
+                        throw new Error("❌ البيانات المستلمة ليست مصفوفة!");
+                    }
+
+                    tableBody.innerHTML = "";
+                    let names = [];
+
+                    data.forEach(row => {
+                        let newRow = tableBody.insertRow();
+                        newRow.insertCell(0).innerText = row[0] || "-";
+                        newRow.insertCell(1).innerText = row[1] || "-";
+                        newRow.insertCell(2).innerText = formatDate(row[2]);
+                        newRow.insertCell(3).innerText = formatTime(row[3]);
+                        newRow.insertCell(4).innerText = formatTime(row[4]);
+
+                        names.push(row[0]); 
+                    });
+
+                    updateDropdown(names);
+                })
+                .catch(error => console.error("⚠️ Fetch Error:", error));
+            }
+
+            function updateDropdown(names) {
+                let uniqueNames = [...new Set(names)];
+                nameFilter.innerHTML = '<option value="all">عرض الكل</option>'; 
+
+                uniqueNames.forEach(name => {
+                    let option = document.createElement("option");
+                    option.value = name;
+                    option.textContent = name;
+                    nameFilter.appendChild(option);
+                });
+            }
+
+            nameFilter.addEventListener("change", function() {
+                let selectedName = nameFilter.value;
+                let rows = document.querySelectorAll("#attendance-table tbody tr");
+
+                rows.forEach(row => {
+                    let nameCell = row.cells[0].textContent;
+                    if (selectedName === "all" || nameCell === selectedName) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+            });
+
+            function downloadExcel() {
+                let wb = XLSX.utils.book_new();
+                let ws = XLSX.utils.table_to_sheet(document.getElementById("attendance-table"));
+
+                let range = XLSX.utils.decode_range(ws["!ref"]);
+                range.s.r = 0;
+                ws["!ref"] = XLSX.utils.encode_range(range);
+
+                XLSX.utils.book_append_sheet(wb, ws, "Attendance Data");
+                XLSX.writeFile(wb, "Attendance.xlsx");
+            }
+
+            function logout() {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = "index.html"; 
+            }
+
+            setTimeout(function() {
+                location.reload();
+            }, 10000);
+            
+            document.getElementById("download-excel").addEventListener("click", downloadExcel);
+            document.getElementById("logout").addEventListener("click", logout);
+
+            fetchAttendanceData();
+        });
+    </script>
+</body>
+</html>
