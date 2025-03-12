@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عرض الحضور</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>Attendance System</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,184 +12,169 @@
             background-color: #f9f9f9;
             direction: rtl;
         }
-        .container {
-            margin-top: 20px;
-        }
-        label {
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px;
+            background-color: #878a88;
+            color: white;
             font-size: 18px;
             font-weight: bold;
-            margin-right: 10px;
+            border-radius: 23px;
+            direction: ltr;
+        }
+        .container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .welcome-message {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            background-color: #ffffff;
+            display: inline-block;
+        }
+        .selection-container {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* مسافة بين العناصر */
+            margin-bottom: 15px;
+        }
+        .label-box {
+            padding: 10px 15px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            background-color: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
         }
         select {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            margin-bottom: 20px;
-        }
-        table {
-            width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
-        th {
-            background-color: #878a88;
-            color: black;
-        }
-        button {
             padding: 12px 20px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
             font-size: 16px;
-            transition: 0.3s;
-            background-color: #28a745;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+            background-color: #ffffff;
+            text-align: center;
+            cursor: pointer;
+        }
+        #confirm-button {
+            display: none;
+            background-color: #007bff;
             color: white;
-            margin: 10px;
+            border-radius: 30px;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
         }
         button:hover {
             transform: scale(1.1);
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
             opacity: 0.9;
         }
-        .logout-btn {
-            background-color: #dc3545;
-        }
+        #logout {
+    background-color: #f38c8c; /* لون أزرق مثل زر التأكيد */
+    color: rgb(0, 0, 0);
+    border-radius: 30px;
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+#logout:hover {
+    transform: scale(1.1);
+    opacity: 0.9;
+}
+
     </style>
 </head>
 <body>
-
-    <h2>سجل الحضور والانصراف</h2>
-    
+    <div class="header">
+        <button id="logout">تسجيل الخروج</button>
+        <span id="username-display"></span>
+    </div>
     <div class="container">
-        <label for="name-filter">اختر الاسم:</label>
-        <select id="name-filter">
-            <option value="all">عرض الكل</option>
-        </select>
+        <span id="welcome-message" class="welcome-message"></span>
+        
+        <!-- ✅ المربع بجانب القائمة المنسدلة -->
+        <div class="selection-container">
+            <span class="label-box">اختر الحالة:</span>
+            <select id="attendance-status">
+                <option value="">-- اختر --</option>
+                <option value="checkIn">حضور</option>
+                <option value="checkOut">انصراف</option>
+            </select>
+        </div>
 
-        <table id="attendance-table">
-            <thead>
-                <tr>
-                    <th>الأسم</th>
-                    <th>اليوم</th>
-                    <th>التاريخ</th>
-                    <th>وقت الحضور</th>
-                    <th>وقت الانصراف</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-
-        <button id="download-excel">📥 تحميل كـ Excel</button>
-        <button id="logout" class="logout-btn">تسجيل الخروج</button>
+        <button id="confirm-button">تأكيد</button>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycby924b7H5fEnF-tSC-dIeliMchPG0SPgCsGLvZVhdwL2CXxFh2Mh5WtSF6y7x5WMXJZCQ/exec";
-            let tableBody = document.querySelector("#attendance-table tbody");
-            const nameFilter = document.getElementById("name-filter");
+            let username = localStorage.getItem("username");
+            let confirmButton = document.getElementById("confirm-button");
+            let statusDropdown = document.getElementById("attendance-status");
+            let welcomeMessage = document.getElementById("welcome-message");
 
-            function formatDate(dateString) {
-                if (!dateString) return "-";
-                let date = new Date(dateString);
-                return isNaN(date) ? dateString : date.toLocaleDateString("en-US"); 
+            if (!username) {
+                window.location.href = "index.html";
             }
 
-            function formatTime(timeString) {
-                if (!timeString) return "-";
-                let time = new Date(timeString);
-                return isNaN(time) ? timeString : time.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' });
-            }
+            document.getElementById("username-display").innerText = username;
+            welcomeMessage.innerText = `مرحبًا ${username}!`;
 
-            function fetchAttendanceData() {
-                fetch(GOOGLE_SHEET_URL)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("📌 البيانات المستلمة:", data);
-
-                    if (!Array.isArray(data)) {
-                        throw new Error("❌ البيانات المستلمة ليست مصفوفة!");
-                    }
-
-                    tableBody.innerHTML = "";
-                    let names = [];
-
-                    data.forEach(row => {
-                        let newRow = tableBody.insertRow();
-                        newRow.insertCell(0).innerText = row[0] || "-";
-                        newRow.insertCell(1).innerText = row[1] || "-";
-                        newRow.insertCell(2).innerText = formatDate(row[2]);
-                        newRow.insertCell(3).innerText = formatTime(row[3]);
-                        newRow.insertCell(4).innerText = formatTime(row[4]);
-
-                        names.push(row[0]); 
-                    });
-
-                    updateDropdown(names);
-                })
-                .catch(error => console.error("⚠️ Fetch Error:", error));
-            }
-
-            function updateDropdown(names) {
-                let uniqueNames = [...new Set(names)];
-                nameFilter.innerHTML = '<option value="all">عرض الكل</option>'; 
-
-                uniqueNames.forEach(name => {
-                    let option = document.createElement("option");
-                    option.value = name;
-                    option.textContent = name;
-                    nameFilter.appendChild(option);
-                });
-            }
-
-            nameFilter.addEventListener("change", function() {
-                let selectedName = nameFilter.value;
-                let rows = document.querySelectorAll("#attendance-table tbody tr");
-
-                rows.forEach(row => {
-                    let nameCell = row.cells[0].textContent;
-                    if (selectedName === "all" || nameCell === selectedName) {
-                        row.style.display = "";
-                    } else {
-                        row.style.display = "none";
-                    }
-                });
+            statusDropdown.addEventListener("change", function() {
+                confirmButton.style.display = statusDropdown.value ? "block" : "none";
+                confirmButton.innerText = `تأكيد ${statusDropdown.options[statusDropdown.selectedIndex].text}`;
             });
 
-            function downloadExcel() {
-                let wb = XLSX.utils.book_new();
-                let ws = XLSX.utils.table_to_sheet(document.getElementById("attendance-table"));
+            confirmButton.addEventListener("click", function() {
+                let status = statusDropdown.value;
+                let now = new Date();
+                let date = now.toLocaleDateString('en-GB');
 
-                let range = XLSX.utils.decode_range(ws["!ref"]);
-                range.s.r = 0;
-                ws["!ref"] = XLSX.utils.encode_range(range);
+                let hours = now.getHours();
+                let minutes = now.getMinutes().toString().padStart(2, '0');
+                let period = hours >= 12 ? "م" : "ص";
+                hours = hours % 12 || 12;
 
-                XLSX.utils.book_append_sheet(wb, ws, "Attendance Data");
-                XLSX.writeFile(wb, "Attendance.xlsx");
+                let time = `${hours}:${minutes} ${period}`;
+
+                let attendanceData = {
+                    name: username.split(" ").slice(0, 2).join(" "),
+                    day: new Intl.DateTimeFormat('ar', { weekday: 'long' }).format(now),
+                    date: date,
+                    [status]: time
+                };
+
+                sendToGoogleSheets(attendanceData);
+            });
+
+            function sendToGoogleSheets(data) {
+                const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzDbhllfNWpyuidQzFAkJZc0KkgkePw29jQxavyMVaduESW5Y155udq00mRPkiBFjgGDw/exec";
+                fetch(GOOGLE_SHEET_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                    mode: "no-cors"
+                }).then(() => {
+                    alert(`تم تسجيل ${statusDropdown.options[statusDropdown.selectedIndex].text} بنجاح!`);
+                }).catch(error => console.error("⚠ Fetch Error:", error));
             }
 
-            function logout() {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = "index.html"; 
-            }
-
-            setTimeout(function() {
-                location.reload();
-            }, 10000);
-            
-            document.getElementById("download-excel").addEventListener("click", downloadExcel);
-            document.getElementById("logout").addEventListener("click", logout);
-
-            fetchAttendanceData();
+            document.getElementById("logout").addEventListener("click", function() {
+                localStorage.removeItem("username");
+                window.location.href = "index.html";
+            });
         });
     </script>
 </body>
