@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HistoryLog</title>
+    <title>Egy-Survey</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,6 +11,7 @@
             text-align: center;
             padding: 0;
             margin: 0;
+            background-image: url('https://raw.githubusercontent.com/MostafaOsama27/wallpaper/refs/heads/main/wallpaperflare.com_wallpaper%20(40).png'); /* ضع رابط الصورة هنا */
             background-position: center;
             background-repeat: no-repeat;
             background-size: cover; /* تكبير الصورة لتغطية كامل الشاشة */
@@ -92,7 +93,7 @@
             margin-top: 10px;
         }
         .footer {
-            color: rgb(0, 0, 0);
+            color: rgb(255, 255, 255);
             padding: 10px;
             font-size: 14px;
             text-align: center;
@@ -124,25 +125,62 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>سجل الحضور والأنصراف</h2>
-        <input type="text" id="username" placeholder="اسم المستخدم" required>
-        <input type="password" id="password" placeholder="كلمة المرور" required>
-        <button onclick="login()">دخول</button>
-        <p id="error" style="color:red;"></p>
+    <div class="header">
+        Egy-Survey
+            </div> 
+
+    <div class="login-container">
+        <h2>ِHistory Log</h2>
+        <input type="text" id="username" placeholder="username">
+        <input type="password" id="password" placeholder="password">
+        <button onclick="login()">enter</button>
+        <p id="error-message" class="error"></p>
     </div>
-    <footer class="footer">&COPY; 2025 Egy-Survey. All rights reserved.</footer>
+
+    <footer class="footer">&COPY; 2025 Egy-Survey. All rights reserved.</footer> 
+
     <script>
-        function login() {
-            var username = document.getElementById('username').value;
-            var password = document.getElementById('password').value;
-            
-            if (username === "admin" && password === "1234") {
-                window.location.href = "History.html";
-            } else {
-                document.getElementById('error').innerText = "اسم المستخدم أو كلمة المرور غير صحيحة";
-            }
+     async function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const scriptURL = "https://script.google.com/macros/s/AKfycbybkVhzBohbaM3y0sUMeqcuIuNHEJgAiUhrJ9Rvh_W33j_WnzSQpymKXO3hOOBh9g/exec"; // استبدل بالرابط الصحيح من Google Apps Script
+
+    if (!username || !password) {
+        document.getElementById("error-message").innerText = "Please enter your username and password.";
+        return;
+    }
+
+    try {
+        let response = await fetch(scriptURL);
+        if (!response.ok) {
+            throw new Error("Failed to fetch data");
         }
+
+        let data = await response.json();
+        let users = data.users || [];
+
+        console.log("Registered users:", users); // طباعة البيانات في الـ console للتأكد من استرجاعها
+
+        let userExists = users.some(user => 
+            typeof user.password === "string" && // تأكد أن كلمة المرور نصية
+            user.username.trim() === username && 
+            user.password.trim() === password
+        );
+
+        if (userExists) {
+            localStorage.setItem("username", username);
+            alert("You have successfully logged in✅");
+            window.location.href = "History.html";
+        } else {
+            document.getElementById("error-message").innerText = "Incorrect username or password";
+        }
+    } catch (error) {
+        console.error("Error while logging in:", error);
+        alert("Could not connect to server, make sure Google Apps Script is working properly!");
+    }
+}
+
+
     </script>
 </body>
 </html>
