@@ -6,74 +6,117 @@
     <title>عرض الحضور</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-            background-color: #f9f9f9;
-            direction: rtl;
-        }
-        .tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            border: none;
-            background-color: #ddd;
-            margin: 5px;
-            border-radius: 5px;
-        }
-        .tab.active {
-            background-color: #28a745;
-            color: white;
-        }
-        .container {
-            display: none;
-            margin-top: 10px;
-        }
-        .container.active {
-            display: block;
-        }
-        table {
-            width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
-        th {
-            background-color: #878a88;
-            color: black;
-        }
-        button {
-            padding: 12px 20px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: 0.3s;
-            background-color: #28a745;
-            color: white;
-            margin: 10px;
-        }
-        button:hover {
-            transform: scale(1.1);
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-            opacity: 0.9;
-        }
-        .logout-btn {
-            background-color: #dc3545;
-        }
+      /* تعيين الخطوط والاتجاه العام */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    direction: rtl;
+}
+
+/* تصميم التبويبات */
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.tab {
+    padding: 12px 25px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    background-color: #ddd;
+    margin: 5px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.tab.active {
+    background-color: #28a745;
+    color: white;
+}
+
+/* إخفاء الحاويات غير النشطة */
+.container {
+    display: none;
+    width: 80%;
+    margin: auto;
+}
+
+/* عرض الحاوية النشطة فقط */
+.container.active {
+    display: block;
+}
+
+/* الحاوية الخاصة بالجدول مع التمرير الداخلي */
+.table-container {
+    width: 100%;
+    height: 400px; /* ارتفاع ثابت */
+    overflow-y: auto; /* السماح بالتمرير */
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* تنسيق الجدول */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    position: relative;
+}
+
+/* تثبيت العناوين عند التمرير */
+th {
+    position: sticky;
+    top: 0;
+    background-color: #878a88;
+    color: white;
+    padding: 14px;
+    border-bottom: 2px solid #555;
+    z-index: 2;
+}
+
+/* تنسيق الخلايا */
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+/* تأثير الخطوط الفردية والزوجية */
+tbody tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+/* تحسين تصميم الأزرار */
+button {
+    padding: 12px 20px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: 0.3s;
+    background-color: #28a745;
+    color: white;
+    margin: 10px;
+}
+
+button:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0.9;
+}
+
+/* زر تسجيل الخروج */
+.logout-btn {
+    background-color: #dc3545;
+}
+
     </style>
 </head>
 <body>
@@ -85,8 +128,10 @@
         <button class="tab" id="history-tab" onclick="showTab('history')">📜 السجل (History)</button>
     </div>
     
-    <!-- جدول الحضور والانصراف -->
-    <div class="container active" id="attendance">
+   <!-- جدول الحضور والانصراف -->
+<div class="container active" id="attendance">
+    <h3>📌 جدول الحضور والانصراف</h3>
+    <div class="table-container">
         <table id="attendance-table">
             <thead>
                 <tr>
@@ -100,9 +145,12 @@
             <tbody></tbody>
         </table>
     </div>
+</div>
 
-    <!-- جدول السجل (History) -->
-    <div class="container" id="history">
+<!-- جدول السجل (History) -->
+<div class="container" id="history">
+    <h3>📜 جدول السجل (History)</h3>
+    <div class="table-container">
         <table id="history-table">
             <thead>
                 <tr>
@@ -116,6 +164,8 @@
             <tbody></tbody>
         </table>
     </div>
+</div>
+
 
     <button id="download-excel">📥 تحميل كـ Excel</button>
     <button id="logout" class="logout-btn">تسجيل الخروج</button>
@@ -125,55 +175,65 @@
         const HISTORY_SHEET_URL = "https://script.google.com/macros/s/AKfycbxsUbUygXwXh8V6uPxkwAAEOCa0DiGXw9-vxvpSt5bjPVL-1t8jQX4bM8UqphZNW902/exec";
 
         function fetchSheetData(url, tableId) {
-            console.log(`📡 جلب البيانات من: ${url}`);
+    console.log(`📡 جلب البيانات من: ${url}`);
 
-            fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                console.log(`✅ البيانات المسترجعة (${tableId}):`, data);
+    fetch(url)
+    .then(response => response.json())
+    .then(data => {
+        console.log(`✅ البيانات المسترجعة (${tableId}):`, data);
 
-                if (!Array.isArray(data)) {
-                    console.error("❌ البيانات غير صحيحة! تأكد من أن Google Sheets يرجع مصفوفة.");
-                    return;
-                }
-
-                let tableBody = document.querySelector(`#${tableId} tbody`);
-                tableBody.innerHTML = "";
-
-                if (data.length === 0) {
-                    tableBody.innerHTML = "<tr><td colspan='5'>🚫 لا توجد بيانات متاحة</td></tr>";
-                    return;
-                }
-
-                data.forEach(row => {
-                    let newRow = tableBody.insertRow();
-
-                    row.forEach((cell, index) => {
-                        let newCell = newRow.insertCell();
-                        
-                        if (typeof cell === "string" && cell.includes("T")) {
-                            let dateObj = new Date(cell);
-                            if (!isNaN(dateObj)) {
-                                if (index === 2) {
-                                    newCell.innerText = dateObj.toLocaleDateString("en-GB"); 
-                                } else if (index === 3 || index === 4) { 
-                                    newCell.innerText = dateObj.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
-                                } else {
-                                    newCell.innerText = cell;
-                                }
-                            } else {
-                                newCell.innerText = "-";
-                            }
-                        } else {
-                            newCell.innerText = cell || "-";
-                        }
-                    });
-                });
-            })
-            .catch(error => {
-                console.error(`⚠️ خطأ في جلب بيانات ${tableId}:`, error);
-            });
+        if (!Array.isArray(data)) {
+            console.error("❌ البيانات غير صحيحة! تأكد من أن Google Sheets يرجع مصفوفة.");
+            return;
         }
+
+        let tableBody = document.querySelector(`#${tableId} tbody`);
+        tableBody.innerHTML = "";
+
+        if (data.length === 0) {
+            tableBody.innerHTML = "<tr><td colspan='5'>🚫 لا توجد بيانات متاحة</td></tr>";
+            return;
+        }
+
+        // 🟢 **فرز البيانات حسب التاريخ (تصاعديًا من الأقدم للأحدث)**
+        data.sort((a, b) => {
+            let dateA = new Date(a[2]); // العمود رقم 3 (التاريخ)
+            let dateB = new Date(b[2]);
+
+            return dateA - dateB; // تصاعدي (الأقدم أولًا)
+        });
+
+        // 🟢 **إضافة البيانات إلى الجدول**
+        data.forEach(row => {
+            let newRow = tableBody.insertRow();
+
+            row.forEach((cell, index) => {
+                let newCell = newRow.insertCell();
+
+                if (typeof cell === "string" && cell.includes("T")) {
+                    let dateObj = new Date(cell);
+                    if (!isNaN(dateObj)) {
+                        if (index === 2) { // تاريخ
+                            newCell.innerText = dateObj.toLocaleDateString("en-GB");
+                        } else if (index === 3 || index === 4) { // وقت الحضور والانصراف
+                            newCell.innerText = dateObj.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+                        } else {
+                            newCell.innerText = cell;
+                        }
+                    } else {
+                        newCell.innerText = "-";
+                    }
+                } else {
+                    newCell.innerText = cell || "-";
+                }
+            });
+        });
+    })
+    .catch(error => {
+        console.error(`⚠️ خطأ في جلب بيانات ${tableId}:`, error);
+    });
+}
+
 
         function showTab(tabId) {
             document.querySelectorAll(".container").forEach(el => el.classList.remove("active"));
