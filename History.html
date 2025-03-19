@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>عرض الحضور</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/MostafaOsama27/wallpaper/refs/heads/main/logo.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
       /* تعيين الخطوط والاتجاه العام */
@@ -15,7 +16,18 @@ body {
     background-color: #f9f9f9;
     direction: rtl;
 }
-
+.header {
+            color: rgb(0, 0, 0);
+            padding: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            width: 97%;
+            direction: ltr;
+        }
 /* تصميم التبويبات */
 .tabs {
     display: flex;
@@ -116,16 +128,28 @@ button:hover {
 .logout-btn {
     background-color: #dc3545;
 }
+.title {
+            flex-grow: 1; /* يجعل النص يأخذ المساحة الوسطى */
+            text-align: left;
+            margin-left: 10px;
+        }
+        .logo {
+            width: 50px; /* تقليل حجم اللوجو قليلاً */
+            height: auto;
+        }
 
     </style>
 </head>
 <body>
-
+    <div class="header">
+        <img src="https://raw.githubusercontent.com/MostafaOsama27/wallpaper/refs/heads/main/logo.png" alt="Logo" class="logo">
+        <span class="title">Egy-Survey</span>
+        </div>
     <h2>سجل الحضور والانصراف</h2>
 
     <div class="tabs">
         <button class="tab active" id="attendance-tab" onclick="showTab('attendance')">📌 الحضور والانصراف</button>
-        <button class="tab" id="history-tab" onclick="showTab('history')">📜 السجل (History)</button>
+        <button class="tab" id="history-tab" onclick="showTab('history')">📜 السجل </button>
     </div>
     
    <!-- جدول الحضور والانصراف -->
@@ -149,7 +173,7 @@ button:hover {
 
 <!-- جدول السجل (History) -->
 <div class="container" id="history">
-    <h3>📜 جدول السجل (History)</h3>
+    <h3>📜 جدول السجل </h3>
     <div class="table-container">
         <table id="history-table">
             <thead>
