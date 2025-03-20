@@ -303,6 +303,27 @@ button:hover {
         });
 
         fetchSheetData(ATTENDANCE_SHEET_URL, "attendance-table");
+        let logoutTimer;
+
+// دالة تسجيل الخروج
+function logout() {
+    alert("تم تسجيل خروجك تلقائيًا بسبب عدم النشاط.");
+    window.location.href = "index.html"; // استبدل "login.html" برابط صفحة تسجيل الدخول
+}
+
+// إعادة ضبط المؤقت عند وجود نشاط
+function resetLogoutTimer() {
+    clearTimeout(logoutTimer);
+    logoutTimer = setTimeout(logout, 3000); // 3 ثوانٍ
+}
+
+// تشغيل المؤقت لأول مرة
+resetLogoutTimer();
+
+// مراقبة أي نشاط للمستخدم
+document.addEventListener("mousemove", resetLogoutTimer);
+document.addEventListener("keydown", resetLogoutTimer);
+document.addEventListener("click", resetLogoutTimer);
     </script>
 </body>
 </html>
